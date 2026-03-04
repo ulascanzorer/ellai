@@ -4,4 +4,6 @@ version = "0.1.0"
 description = "Ellai is a personal assistant, powered by local LLMs and TTS models."
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "ollama>=0.6.1",
+]
