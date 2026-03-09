@@ -7,14 +7,14 @@ if __name__ == "__main__":
     while True:
         try:
             user_input = input("\nYou: ")
-            if user_input.strip().lower() in ['quit', 'exit']:
+            if user_input.strip().lower() in ["quit", "exit"]:
                 break
 
             if not user_input.strip():
                 continue
 
             response = ellai.chat(user_input)
-            print(f"Ellai: {response}")
+            print(f"\nEllai: {response}")
 
         except KeyboardInterrupt:
             print("\nGoodbye!")
