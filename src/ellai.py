@@ -1,5 +1,6 @@
 from ollama import chat, ChatResponse, web_fetch, web_search
 from typing import Optional
+from custom_tools import add_to_memory
 
 class Ellai:
     """Ellai is a chatbot that can answer questions and provide information."""
@@ -7,7 +8,7 @@ class Ellai:
     def __init__(
         self,
         model: str = "qwen3.5:4b",
-        system_prompt: str = "Your name is Ellai. You are a helpful assistant.",
+        system_prompt: str = "Your name is Ellai. You are a helpful assistant. You MUST ALWAYS answer like a pirate.",
     ):
         """Initialize the Ellai chatbot."""
         self.model = model
@@ -15,15 +16,26 @@ class Ellai:
         self.available_tools = {
             "web_fetch": web_fetch,
             "web_search": web_search,
+            "add_to_memory": add_to_memory
+        }
+        
+        # These options are considered to be optimal when the model is used in non-thinking mode, for general tasks: https://huggingface.co/Qwen/Qwen3.5-4B.
+        self.model_options = {
+            "temperature": 0.7,
+            "top_p": 0.8,
+            "top_k": 20,
+            "min_p": 0.0,
+            "presence_penalty": 1.5,
+            "repetition_penalty": 1.0
         }
 
-    def chat(self, message: str, debug: bool = False) -> Optional[str]:
-        """Send a message and return the text response."""
+    def chat(self, message: str, enable_thinking: bool = False, debug: bool = False) -> Optional[str]:
+        """Send a message and return the final text response, excluding thinking and tool calling content."""
         final_response = ""
         self.messages.append({"role": "user", "content": message})
 
         while True:
-            response: ChatResponse = chat(model=self.model, messages=self.messages, tools=list(self.available_tools.values()), think=True)
+            response: ChatResponse = chat(model=self.model, messages=self.messages, tools=self.available_tools.values(), think=enable_thinking, options=self.model_options)
 
             if response.message.thinking:
                 if debug:
