@@ -29,13 +29,13 @@ class Ellai:
             "repetition_penalty": 1.0
         }
 
-    def chat(self, message: str, enable_thinking: bool = False, debug: bool = False) -> Optional[str]:
+    def chat_cli(self, message: str, enable_thinking: bool = False, debug: bool = False) -> Optional[str]:
         """Send a message and return the final text response, excluding thinking and tool calling content."""
-        final_response = ""
         self.messages.append({"role": "user", "content": message})
 
         while True:
             response: ChatResponse = chat(model=self.model, messages=self.messages, tools=self.available_tools.values(), think=enable_thinking, options=self.model_options)
+            self.messages.append(response.message)
 
             if response.message.thinking:
                 if debug:
@@ -43,8 +43,7 @@ class Ellai:
             if response.message.content:
                 if debug:
                     print(f"Content: {response.message.content}")
-                final_response += response.message.content
-                self.messages.append(response.message)
+                return response.message.content
             if response.message.tool_calls:
                 if debug:
                     tool_calls_str = f"Tool calls: {response.message.tool_calls}"
@@ -57,15 +56,13 @@ class Ellai:
                         if debug:
                             result_str = f"Result: {str(result)[:200]}..."
                             print(result_str)
-                        # Result is truncated for limited context lengths
+                        # Result is truncated for limited context lengths.
                         self.messages.append({"role": "tool", "content": str(result)[:4000 * 4], "tool_name": tool_call.function.name})
                     else:
                         self.messages.append({"role": "tool", "content": f"Tool {tool_call.function.name} not found", "tool_name": tool_call.function.name})
             else:
                 break
 
-        return final_response
-
     def reset(self):
-        """Reset the Ellai's conversation history."""
+        """Reset Ellai's conversation history."""
         self.messages = []

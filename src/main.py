@@ -1,19 +1,8 @@
 from ellai import Ellai
-from system_prompt_template import SYSTEM_PROMPT_TEMPLATE
-
-def load_system_prompt() -> str:
-    memory_path = "./ellai_memory.md"
-    try:
-        with open(memory_path, "r") as f:
-            memory = f.read().strip()
-    except FileNotFoundError:
-        memory = "No memories saved yet."
-    
-    return SYSTEM_PROMPT_TEMPLATE.format(memory=memory)
+from utils import load_system_prompt
 
 if __name__ == "__main__":
-    system_prompt = load_system_prompt()
-    ellai = Ellai(system_prompt=system_prompt)
+    ellai = Ellai(system_prompt=load_system_prompt())
     print("Ellai is ready! Type 'quit' or 'exit' to stop chatting.")
 
     while True:
@@ -25,7 +14,7 @@ if __name__ == "__main__":
             if not user_input.strip():
                 continue
 
-            response = ellai.chat(user_input)
+            response = ellai.chat_cli(message=user_input)
             print(f"\nEllai: {response}")
 
         except KeyboardInterrupt:
