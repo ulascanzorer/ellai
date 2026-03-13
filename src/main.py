@@ -14,8 +14,9 @@ if __name__ == "__main__":
             if not user_input.strip():
                 continue
 
-            response = ellai.chat_cli(message=user_input)
-            print(f"\nEllai: {response}")
+            print("Ellai:", end="", flush=True)
+            ellai.chat_cli_streaming(message=user_input, enable_thinking=False)
+            print("\n")
 
         except KeyboardInterrupt:
             print("\nGoodbye!")
