@@ -26,7 +26,7 @@ Ellai is a personal AI assistant running locally in the terminal, powered by [Ol
 
 We recommend using [uv](https://github.com/astral-sh/uv) to manage dependencies and run the project.
 
-Start the chat by running:
+Start a chat in the terminal by running:
 ```bash
-uv run src/main.py
+uv run python -m src.main
 ```
