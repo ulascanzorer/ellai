@@ -1,4 +1,4 @@
-from system_prompt_template import SYSTEM_PROMPT_TEMPLATE
+from src.core.system_prompt_template import SYSTEM_PROMPT_TEMPLATE
 
 def load_system_prompt() -> str:
     memory_path = "./ellai_memory.md"

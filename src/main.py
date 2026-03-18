@@ -1,5 +1,5 @@
-from ellai import Ellai
-from utils import load_system_prompt
+from src.core.ellai import Ellai
+from src.core.utils import load_system_prompt
 
 if __name__ == "__main__":
     ellai = Ellai(system_prompt=load_system_prompt())

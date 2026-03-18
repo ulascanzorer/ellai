@@ -1,6 +1,6 @@
 import gradio as gr
-from ellai import Ellai
-from utils import load_system_prompt
+from src.core.ellai import Ellai
+from src.core.utils import load_system_prompt
 
 system_prompt = load_system_prompt()
 ellai = Ellai(system_prompt=system_prompt)

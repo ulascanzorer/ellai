@@ -1,6 +1,5 @@
-from ollama import chat, ChatResponse, web_fetch, web_search
-from typing import Optional
-from custom_tools import add_to_memory
+from ollama import chat, web_fetch, web_search
+from src.core.custom_tools import add_to_memory
 
 class Ellai:
     """Ellai is a chatbot that can answer questions and provide information."""
