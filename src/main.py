@@ -7,14 +7,14 @@ if __name__ == "__main__":
 
     while True:
         try:
-            user_input = input("\nYou: ")
+            user_input = input("You: ")
             if user_input.strip().lower() in ["quit", "exit"]:
                 break
 
             if not user_input.strip():
                 continue
 
-            print("Ellai:", end="", flush=True)
+            print("Ellai: ", end="", flush=True)
             ellai.chat_cli_streaming(message=user_input, enable_thinking=False)
             print("\n")
 

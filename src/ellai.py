@@ -10,7 +10,7 @@ class Ellai:
         model: str = "qwen3.5:4b",
         system_prompt: str = "Your name is Ellai. You are a helpful assistant. You MUST ALWAYS answer like a pirate.",
     ):
-        """Initialize the Ellai chatbot."""
+        """Initialize Ellai."""
         self.model = model
         self.messages = [{"role": "system", "content": system_prompt}]
         self.available_tools = {
@@ -29,43 +29,8 @@ class Ellai:
             "repetition_penalty": 1.0
         }
 
-    def chat_cli(self, message: str, enable_thinking: bool = False, debug: bool = False) -> Optional[str]:
-        """Send a message and return the final text response, excluding thinking and tool calling content."""
-        
-        self.messages.append({"role": "user", "content": message})
-
-        while True:
-            response: ChatResponse = chat(model=self.model, messages=self.messages, tools=self.available_tools.values(), think=enable_thinking, options=self.model_options)
-            self.messages.append(response.message)
-
-            if response.message.thinking:
-                if debug:
-                    print(f"Thinking: {response.message.thinking}")
-            if response.message.content:
-                if debug:
-                    print(f"Content: {response.message.content}")
-                return response.message.content
-            if response.message.tool_calls:
-                if debug:
-                    tool_calls_str = f"Tool calls: {response.message.tool_calls}"
-                    print(tool_calls_str)
-                for tool_call in response.message.tool_calls:
-                    function_to_call = self.available_tools.get(tool_call.function.name)
-                    if function_to_call:
-                        args = tool_call.function.arguments
-                        result = function_to_call(**args)
-                        if debug:
-                            result_str = f"Result: {str(result)[:200]}..."
-                            print(result_str)
-                        # Result is truncated for limited context lengths.
-                        self.messages.append({"role": "tool", "content": str(result)[:4000 * 4], "tool_name": tool_call.function.name})
-                    else:
-                        self.messages.append({"role": "tool", "content": f"Tool {tool_call.function.name} not found", "tool_name": tool_call.function.name})
-            else:
-                break
-
     def chat_cli_streaming(self, message: str, enable_thinking: bool = False, debug: bool = False):
-        """Chat with Ellai in a streaming fashion as documented by ollama."""
+        """Chat with Ellai in a streaming fashion as documented by ollama: https://docs.ollama.com/capabilities/tool-calling."""
         
         self.messages.append({"role": "user", "content": message})
 
@@ -103,7 +68,7 @@ class Ellai:
                 function_to_call = self.available_tools.get(call.function.name)
                 if function_to_call:
                     result = function_to_call(**call.function.arguments)
-                    result = str(result)[:20000]    # Again cutting off the result to not occupy too much of the context window.
+                    result = str(result)[:20000]    # Cutting off the result by an arbitrary length to not occupy too much of the context window.
                 else:
                     result = "Unknown tool"
 
