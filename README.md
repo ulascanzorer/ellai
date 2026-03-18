@@ -30,3 +30,8 @@ Start a chat in the terminal by running:
 ```bash
 uv run python -m src.main
 ```
+
+Alternatively, you can run the Gradio web application:
+```bash
+uv run python -m src.gradio.gradio_app
+```
