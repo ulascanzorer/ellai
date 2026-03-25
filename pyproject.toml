@@ -7,4 +7,5 @@ requires-python = ">=3.10"
 dependencies = [
     "gradio>=6.9.0",
     "ollama>=0.6.1",
+    "yt-dlp>=2026.3.17",
 ]

@@ -29,3 +29,58 @@ def add_to_memory(content_to_add: str) -> None:
     memory_path = "./ellai_memory.md"
     with open(memory_path, "a") as file:
         file.write(content_to_add + "\n")
+
+def play_song(song_name: str) -> str:
+    """
+    Temporarily downloads a song from YouTube and plays it in the background using ffplay.
+    
+    Args:
+        song_name (str): The name of the song to play.
+        
+    Returns:
+        str: A message indicating the status of the playback.
+    """
+    import os
+    import tempfile
+    import subprocess
+
+    try:
+        import yt_dlp
+    except ImportError:
+        return "Error: yt-dlp is not installed. Please install it to use this tool."
+
+    try:
+        temp_dir = tempfile.gettempdir()
+        
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': os.path.join(temp_dir, 'ellai_song_%(id)s.%(ext)s'),
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+            'noplaylist': True,
+            'quiet': True,
+            'default_search': 'ytsearch1',
+        }
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(f"ytsearch1:{song_name}", download=True)
+            if 'entries' in info and len(info['entries']) > 0:
+                entry = info['entries'][0]
+            else:
+                entry = info
+            
+            # The actual downloaded file path after ffmpeg processing will be mp3
+            filename = ydl.prepare_filename(entry)
+            filepath = os.path.splitext(filename)[0] + '.mp3'
+            
+        # Run ffplay in the background
+        play_cmd = ["ffplay", "-nodisp", "-autoexit", filepath]
+        subprocess.Popen(play_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        title = entry.get('title', song_name)
+        return f"Successfully downloaded and currently playing '{title}' in the background."
+    except Exception as e:
+        return f"An error occurred while playing the song: {str(e)}"
