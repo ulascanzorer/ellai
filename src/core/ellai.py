@@ -1,5 +1,6 @@
+import inspect
 from ollama import chat, web_fetch, web_search
-from src.core.custom_tools import add_to_memory
+import src.core.custom_tools as custom_tools
 
 class Ellai:
     """Ellai is a chatbot that can answer questions and provide information."""
@@ -15,8 +16,12 @@ class Ellai:
         self.available_tools = {
             "web_fetch": web_fetch,
             "web_search": web_search,
-            "add_to_memory": add_to_memory
         }
+        
+        # Add all functions from custom_tools to available_tools
+        for name, func in inspect.getmembers(custom_tools, inspect.isfunction):
+            if func.__module__ == custom_tools.__name__:
+                self.available_tools[name] = func
         
         # These options are considered to be optimal when the model is used in non-thinking mode, for general tasks: https://huggingface.co/Qwen/Qwen3.5-4B.
         self.model_options = {
