@@ -84,3 +84,106 @@ def play_song(song_name: str) -> str:
         return f"Successfully downloaded and currently playing '{title}' in the background."
     except Exception as e:
         return f"An error occurred while playing the song: {str(e)}"
+
+
+
+EPHEMERAL_SCRIPT_PATH = "/tmp/ellai_ephemeral_script.py"
+
+def ephemeral_creator(code: str, dependencies: list[str]) -> str:
+    """
+    Create a temporary Python script to be run by ephemeral_runner.
+
+    Use this tool when the user asks for a task you cannot accomplish with
+    your built-in tools. Write a complete Python script in `code` and list
+    any required third-party packages in `dependencies`. The script is saved
+    to a fixed temporary path with uv inline-script metadata prepended.
+    Call ephemeral_runner immediately after to execute it.
+
+    Args:
+        code (str): The full Python script. Do NOT include a uv inline-script
+            header — it is prepended automatically.
+        dependencies (list[str]): PyPI package names needed by the script,
+            e.g. ["requests", "pandas==2.2.0"]. Pass [] if none are needed.
+
+    Returns:
+        str: Confirmation that the script was saved, or an error message.
+
+    Example usage:
+        ephemeral_creator(
+            code="import requests\nprint(requests.get('https://example.com').status_code)",
+            dependencies=["requests"]
+        )
+    """
+    try:
+        dep_lines = "\n".join(f'#   "{dep}",' for dep in dependencies)
+        if dep_lines:
+            header = (
+                "# /// script\n"
+                '# requires-python = ">=3.10"\n'
+                "# dependencies = [\n"
+                f"{dep_lines}\n"
+                "# ]\n"
+                "# ///\n\n"
+            )
+        else:
+            header = (
+                "# /// script\n"
+                '# requires-python = ">=3.10"\n'
+                "# dependencies = []\n"
+                "# ///\n\n"
+            )
+
+        with open(EPHEMERAL_SCRIPT_PATH, "w") as f:
+            f.write(header + code)
+
+        return f"Ephemeral script saved to {EPHEMERAL_SCRIPT_PATH}. Call ephemeral_runner to execute it."
+    except Exception as e:
+        return f"Error saving ephemeral script: {str(e)}"
+
+
+def ephemeral_runner() -> str:
+    """
+    Execute the ephemeral script previously created by ephemeral_creator.
+
+    Runs the script using `uv run`, which automatically installs any
+    inline-declared dependencies into an isolated environment. Captures
+    stdout and stderr. Times out after 30 seconds.
+
+    Returns:
+        str: The exit code, stdout, and stderr of the script, clearly
+            labelled. Returns an error message if the script does not exist,
+            times out, or `uv` is not found on PATH.
+
+    Example usage:
+        ephemeral_runner()
+    """
+    import os
+    import subprocess
+
+    if not os.path.exists(EPHEMERAL_SCRIPT_PATH):
+        return (
+            f"Error: No ephemeral script found at {EPHEMERAL_SCRIPT_PATH}. "
+            "Call ephemeral_creator first."
+        )
+
+    try:
+        result = subprocess.run(
+            ["uv", "run", EPHEMERAL_SCRIPT_PATH],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=30,
+        )
+        stdout = result.stdout.strip() or "(empty)"
+        stderr = result.stderr.strip() or "(empty)"
+        return (
+            f"[exit code: {result.returncode}]\n\n"
+            f"[stdout]\n{stdout}\n\n"
+            f"[stderr]\n{stderr}"
+        )
+    except subprocess.TimeoutExpired:
+        return "Error: Ephemeral script timed out after 30 seconds."
+    except FileNotFoundError:
+        return "Error: `uv` executable not found. Ensure uv is installed and on PATH."
+    except Exception as e:
+        return f"Error running ephemeral script: {str(e)}"
